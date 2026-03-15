@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#0d0d0d" />
+  <title>STOCKYARD</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- SPLASH / HEADER -->
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="brand">
+        <span class="brand-icon">⬡</span>
+        <span class="brand-name">STOCKYARD</span>
+      </div>
+      <div class="header-actions">
+        <button class="icon-btn" id="darkToggle" title="Toggle dark mode" aria-label="Toggle dark mode">◑</button>
+        <button class="icon-btn" id="exportBtn" title="Export CSV" aria-label="Export CSV">↓CSV</button>
+        <label class="icon-btn" for="importFile" title="Import CSV" aria-label="Import CSV">↑CSV
+          <input type="file" id="importFile" accept=".csv" style="display:none" />
+        </label>
+      </div>
+    </div>
+  </header>
+
+  <!-- NAV TABS -->
+  <nav class="tab-nav" role="tablist">
+    <button class="tab active" data-tab="dashboard" role="tab" aria-selected="true">DASH</button>
+    <button class="tab" data-tab="inventory" role="tab" aria-selected="false">STOCK</button>
+    <button class="tab" data-tab="alerts" role="tab" aria-selected="false">ALERTS <span class="badge" id="alertBadge"></span></button>
+    <button class="tab" data-tab="add" role="tab" aria-selected="false">+ ADD</button>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <main class="app-main">
+
+    <!-- ── DASHBOARD ── -->
+    <section class="tab-panel active" id="tab-dashboard">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span class="stat-label">TOTAL ITEMS</span>
+          <span class="stat-value" id="statTotal">0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">IN STOCK</span>
+          <span class="stat-value ok" id="statOk">0</span>
+        </div>
+        <div class="stat-card warn">
+          <span class="stat-label">LOW STOCK</span>
+          <span class="stat-value warn" id="statLow">0</span>
+        </div>
+        <div class="stat-card danger">
+          <span class="stat-label">OUT OF STOCK</span>
+          <span class="stat-value danger" id="statOut">0</span>
+        </div>
+      </div>
+
+      <div class="section-label">RECENT ACTIVITY</div>
+      <ul class="activity-log" id="activityLog">
+        <li class="empty-state">No activity yet.</li>
+      </ul>
+    </section>
+
+    <!-- ── INVENTORY LIST ── -->
+    <section class="tab-panel" id="tab-inventory">
+      <div class="search-bar-wrap">
+        <span class="search-icon">⌕</span>
+        <input type="search" id="searchInput" class="search-input" placeholder="Search items…" autocomplete="off" />
+        <button class="clear-search" id="clearSearch" aria-label="Clear search">✕</button>
+      </div>
+      <div class="sort-bar">
+        <span class="sort-label">SORT:</span>
+        <button class="sort-btn active" data-sort="name">A–Z</button>
+        <button class="sort-btn" data-sort="stock-asc">LOW↑</button>
+        <button class="sort-btn" data-sort="stock-desc">HIGH↓</button>
+      </div>
+      <ul class="item-list" id="itemList">
+        <li class="empty-state">No items yet. Add one!</li>
+      </ul>
+    </section>
+
+    <!-- ── ALERTS ── -->
+    <section class="tab-panel" id="tab-alerts">
+      <div class="section-label">LOW STOCK ALERTS</div>
+      <ul class="item-list alert-list" id="alertList">
+        <li class="empty-state">All stock levels OK ✓</li>
+      </ul>
+    </section>
+
+    <!-- ── ADD ITEM ── -->
+    <section class="tab-panel" id="tab-add">
+      <div class="form-card">
+        <div class="form-title">NEW ITEM</div>
+        <div class="field-group">
+          <label class="field-label" for="newName">ITEM NAME</label>
+          <input type="text" id="newName" class="field-input" placeholder="e.g. Hammer" autocomplete="off" />
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="newStock">STARTING STOCK</label>
+          <input type="number" id="newStock" class="field-input" placeholder="0" min="0" />
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="newMin">LOW STOCK ALERT BELOW</label>
+          <input type="number" id="newMin" class="field-input" placeholder="5" min="0" />
+        </div>
+        <button class="btn-primary full" id="addItemBtn">⊕ ADD ITEM</button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ── ADJUSTMENT MODAL ── -->
+  <div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span class="modal-tag">ADJUST STOCK</span>
+        <button class="modal-close" id="modalClose" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-item-name" id="modalTitle">—</div>
+      <div class="modal-stock-display">
+        <span class="modal-stock-label">CURRENT STOCK</span>
+        <span class="modal-stock-value" id="modalCurrentStock">0</span>
+      </div>
+      <div class="modal-min-display">
+        <span class="modal-stock-label">ALERT BELOW</span>
+        <span class="modal-min-value" id="modalMinStock">0</span>
+        <button class="edit-min-btn" id="editMinBtn" title="Edit min stock">✎</button>
+      </div>
+      <div class="modal-qty-row">
+        <button class="qty-stepper" id="qtyDown">−</button>
+        <input type="number" class="qty-input" id="qtyInput" value="1" min="1" />
+        <button class="qty-stepper" id="qtyUp">+</button>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-add" id="btnAdd">＋ ADD STOCK</button>
+        <button class="btn-remove" id="btnRemove">− REMOVE</button>
+      </div>
+      <button class="btn-delete" id="btnDelete">🗑 DELETE ITEM</button>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast" role="alert" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
